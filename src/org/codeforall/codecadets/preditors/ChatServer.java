@@ -11,7 +11,6 @@ import java.util.concurrent.Executors;
 public class ChatServer {
 
     private final static int PORT = 9999;
-    private int user = 0;
     private List<ClientHandler> users = new LinkedList<>();
     private ServerSocket serverSocket;
 
@@ -33,7 +32,7 @@ public class ChatServer {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("connected with: " + clientSocket.getInetAddress() + clientSocket.getLocalPort());
 
-                ClientHandler clientHandler = new ClientHandler(clientSocket, this);
+                ClientHandler clientHandler = new ClientHandler(clientSocket, this, "User-" + users.size());
                 threadpool.execute(clientHandler);
 
                 synchronized (users) {
@@ -47,16 +46,25 @@ public class ChatServer {
         }
     }
 
-    public void broadcast(String message, int port) {
+    public void broadcast(String message, String clientName) {
 
         synchronized (users) {
             for (ClientHandler clientHandler : users) {
-                if (port != clientHandler.getPort()) {
-                    clientHandler.send(message);
-                }
+
+                clientHandler.send(clientName + ": " + message);
             }
         }
     }
+
+    public String userList() {
+        String clientNames = "";
+        for (ClientHandler user : users) {
+            clientNames += "\n" + user.getName();
+
+        }
+        return clientNames;
+    }
+
 
     public void removeClient(ClientHandler client) {
         users.remove(client);

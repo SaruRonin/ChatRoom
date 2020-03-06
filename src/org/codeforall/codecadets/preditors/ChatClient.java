@@ -53,14 +53,13 @@ public class ChatClient {
 
             while (!client.isClosed()) {
                 message = input.readLine();
-                System.out.println("Received: " + message);
+                System.out.println(message);
+
+
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
-
-
 }
 

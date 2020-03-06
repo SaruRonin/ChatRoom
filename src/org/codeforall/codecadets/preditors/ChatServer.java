@@ -27,7 +27,7 @@ public class ChatServer {
             serverSocket = new ServerSocket(PORT);
             ExecutorService threadpool = Executors.newCachedThreadPool();
 
-            while (true) {
+            while (!serverSocket.isClosed()) {
 
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("connected with: " + clientSocket.getInetAddress() + clientSocket.getLocalPort());
@@ -48,10 +48,20 @@ public class ChatServer {
 
     public void broadcast(String message, String clientName) {
 
+
         synchronized (users) {
             for (ClientHandler clientHandler : users) {
 
                 clientHandler.send(clientName + ": " + message);
+            }
+        }
+    }
+
+    public void personalMessage(String message, String receiverName, String senderName) {
+        for (ClientHandler user : users) {
+            if (receiverName.equals(user.getName())) {
+            user.send(senderName + ": " + message);
+
             }
         }
     }

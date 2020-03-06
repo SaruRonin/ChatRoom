@@ -27,15 +27,20 @@ public class ClientHandler implements Runnable {
             output = new PrintWriter(clientSocket.getOutputStream(), true);
             input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
-            String welcome = "Please enter a new name by typing '/name' followed by your name";
-            send(welcome);
+
+            send( "-----------------------------");
+            send("| Welcome to Flint's Server! |");
+            send( "-----------------------------\n");
+            send("Please enter a new name by typing '/name' followed by your name.");
 
             while (!clientSocket.isClosed()) {
 
                 message = input.readLine();
+                if(message != null) {
 
-                commands(message);
 
+                    commands(message);
+                }
             }
 
 
@@ -51,7 +56,8 @@ public class ClientHandler implements Runnable {
         output.close();
         input.close();
         clientSocket.close();
-        System.out.println("socket closed + " + clientSocket.getPort());
+        message = " has logged out";
+        server.broadcast(message, name);
     }
 
     public void send(String message) {
@@ -63,6 +69,9 @@ public class ClientHandler implements Runnable {
 
     public String setName(String message) {
         String newName = message.split(" ")[1];
+        if ( newName.length() > 8){
+           send("A name can not be longer than 8 digits");
+        }
         return name = newName;
     }
 
@@ -78,13 +87,12 @@ public class ClientHandler implements Runnable {
 
     public void whisper(String message) {
         String[] words = message.split(" ");
+        String receiverName = words[1];
+        String newMessage = "";
         for (int i = 2; i < words.length; i++) {
-            String newMessage = "";
-             newMessage = "" + words[i];
-            System.out.println(newMessage);
-
-
+            newMessage = newMessage + " " + words[i];
         }
+        server.personalMessage(newMessage, receiverName, name);
     }
 
     public String getName() {
@@ -92,30 +100,33 @@ public class ClientHandler implements Runnable {
     }
 
     public void commands(String message) throws IOException {
-        if (!message.startsWith("/")) {
-            server.broadcast(message, name);
+
+
+            if (!message.startsWith("/")) {
+                server.broadcast(message, name);
+            }
+            String command = message.split(" ")[0];
+
+            switch (command) {
+                case "/logout":
+                    System.out.println("connection closed");
+                    close();
+                    break;
+                case "/shout":
+                    shout(message);
+                    break;
+                case "/list":
+                    list();
+                    break;
+                case "/name":
+                    setName(message);
+                    break;
+                case "/whisper":
+                    whisper(message);
+                    break;
+
+            }
+
         }
-        String command = message.split(" ")[0];
-
-        switch (command) {
-            case "/logout":
-                System.out.println("connection closed");
-                close();
-                break;
-            case "/shout":
-                shout(message);
-                break;
-            case "/list":
-                list();
-                break;
-            case "/name":
-                setName(message);
-                break;
-            case "/whisper":
-                whisper(message);
-                break;
-
-        }
-
     }
-}
+

@@ -9,13 +9,14 @@ import java.net.Socket;
 public class ChatClient {
 
 
-    private static final int PORT = 9999;
-    private static final String HOST = "localhost";
+    //private static final int PORT = 9999;
+    //private static final String HOST = "localhost";
     String message;
     String answer;
     Socket client;
     Thread t2;
-
+    String host;
+    int port;
     public static void main(String[] args) {
         ChatClient client = new ChatClient();
 
@@ -23,25 +24,37 @@ public class ChatClient {
 
     }
 
+
+
     public void start() {
 
         try {
-            client = new Socket(HOST, PORT);
-            BufferedReader input = new BufferedReader(new InputStreamReader(client.getInputStream()));
+            BufferedReader userIn = new BufferedReader(new InputStreamReader(System.in));
+
+
+            System.out.println("please enter the hostname: ");
+            host = userIn.readLine();
+
+            System.out.println("please enter the portnumber:");
+            port = Integer.parseInt(userIn.readLine());
+
+            client = new Socket(host, port);
 
             t2 = new Thread(new Runnable() {
 
 
                 @Override
                 public void run() {
-
-                    BufferedReader userIn = new BufferedReader(new InputStreamReader(System.in));
                     try {
                         PrintWriter output = new PrintWriter(client.getOutputStream(), true);
                         while (!client.isClosed()) {
 
                             answer = userIn.readLine();
+
                             output.println(answer);
+                            if(answer.equals("/logout")){
+                          System.exit(0);
+                            }
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -50,16 +63,20 @@ public class ChatClient {
                 }
             });
             t2.start();
-
+            BufferedReader input = new BufferedReader(new InputStreamReader(client.getInputStream()));
             while (!client.isClosed()) {
-                message = input.readLine();
-                System.out.println(message);
+
+                    message = input.readLine();
 
 
-            }
+                    System.out.println(message);
+
+                }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 }
 
